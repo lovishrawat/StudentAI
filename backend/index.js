@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChat.js";
 import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+import quizRoutes from './quizRoutes.js'; // Import cl code
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -13,7 +14,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true,
 }));
-//h
+
 app.use(express.json());
 
 const connect = async () => {
@@ -77,7 +78,6 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-
 app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   try {
@@ -126,7 +126,10 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async(req, res)=>{
     console.log(err);
     res.status(500).send("Error adding conversations!");
   }
-})
+});
+
+// Integrate cl code (quiz generation and evaluation)
+app.use('/api/quiz', quizRoutes); // Use the cl code routes
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
