@@ -11,6 +11,8 @@ const ChatPage = () => {
   const path = useLocation().pathname;
   const chatId = path.split("/").pop();
   const [lastSpokenIndex, setLastSpokenIndex] = useState(-1); // State to track the last spoken message
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false); // State to toggle speech
+  const [isSpeaking, setIsSpeaking] = useState(false); // State to check if speaking is ongoing
 
   // Function to convert text to speech
   const speakText = (text) => {
@@ -20,9 +22,19 @@ const ChatPage = () => {
       speech.pitch = 1;      
       speech.rate = 1;        
       speech.volume = 1;      
+      speech.onstart = () => setIsSpeaking(true);  // Update speaking state
+      speech.onend = () => setIsSpeaking(false);   // Reset speaking state
       window.speechSynthesis.speak(speech);
     } else {
       console.log("Text-to-Speech is not supported in this browser.");
+    }
+  };
+
+  // Function to stop the ongoing speech
+  const stopSpeech = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel(); // Stop the speech
+      setIsSpeaking(false);
     }
   };
 
@@ -40,7 +52,7 @@ const ChatPage = () => {
   });
 
   useEffect(() => {
-    if (data?.history && data.history.length > 0) {
+    if (isSpeechEnabled && data?.history && data.history.length > 0) {
       data.history.forEach((message, index) => {
         if (message.role !== "user" && index > lastSpokenIndex) {
           speakText(message.parts[0].text); // Speak only new bot responses
@@ -48,7 +60,7 @@ const ChatPage = () => {
         }
       });
     }
-  }, [data, lastSpokenIndex]); // Depend on lastSpokenIndex to ensure only new messages are spoken
+  }, [data, lastSpokenIndex, isSpeechEnabled]); // Depend on lastSpokenIndex and isSpeechEnabled
 
   if (isLoading)
     return (
@@ -65,6 +77,28 @@ const ChatPage = () => {
 
   return (
     <div className="chatpage h-full flex flex-col items-center relative p-4">
+      <div className="controls flex justify-between w-full mb-4">
+        {/* Toggle Button for Enabling/Disabling Speech */}
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={isSpeechEnabled}
+            onChange={() => setIsSpeechEnabled(!isSpeechEnabled)}
+          />
+          <span className="ml-2">Enable Text-to-Speech</span>
+        </label>
+
+        {/* Button to Stop Speech */}
+        {isSpeaking && (
+          <button
+            className="stop-speech-btn bg-red-500 text-white p-2 rounded"
+            onClick={stopSpeech}
+          >
+            Stop Speaking
+          </button>
+        )}
+      </div>
+
       <div className="wrapper flex-1 overflow-y-scroll no-scrollbar w-full flex justify-center">
         <div className="chat w-1/2 flex flex-col gap-5">
           {data?.history && data.history.length > 0 ? (

@@ -5,41 +5,49 @@ import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChat.js";
 import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
-import quizRoutes from './quizRoutes.js'; // Import cl code
+import quizRoutes from './quizRoutes.js';
+import 'dotenv/config'; // Load environment variables from .env
 
 const port = process.env.PORT || 3000;
 const app = express();
 
+// Enable CORS
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true,
 }));
 
+// Parse JSON requests
 app.use(express.json());
 
+// MongoDB connection
 const connect = async () => {
   try {
     await mongoose.connect(process.env.MONGO);
     console.log("connected to MONGODB");
   } catch (error) {
-    console.log(error);
+    console.log("MongoDB connection error:", error);
   }
 };
 
+// Initialize ImageKit
 const imagekit = new ImageKit({
   urlEndpoint: process.env.VITE_IMAGE_KIT_ENDPOINT,
   publicKey: process.env.VITE_IMAGE_KIT_PUBLIC_KEY,
   privateKey: process.env.VITE_IMAGE_KIT_PRIVATE_KEY,
 });
 
+// Route to get ImageKit authentication parameters
 app.get("/api/upload", (req, res) => {
   const result = imagekit.getAuthenticationParameters();
   res.send(result);
 });
 
+// Route to create a new chat
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   const { text } = req.body;
+
   try {
     const newChat = new Chat({
       userId: userId,
@@ -49,13 +57,10 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
     const userChats = await UserChats.find({ userId: userId });
 
-    if (userChats.length === 0) { // Check if array is empty
+    if (userChats.length === 0) {
       const newUserChats = new UserChats({
         userId: userId,
-        chats: [{
-          _id: savedChat._id,
-          title: text.substring(0, 40),
-        }],
+        chats: [{ _id: savedChat._id, title: text.substring(0, 40) }],
       });
       await newUserChats.save();
     } else {
@@ -73,11 +78,12 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
     }
     res.status(201).send(newChat._id);
   } catch (err) {
-    console.log("Error:", err);
+    console.log("Error creating chat:", err);
     res.status(500).send("Error creating chat!");
   }
 });
 
+// Route to fetch user's chats
 app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
   try {
@@ -89,54 +95,62 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
       res.status(404).send("No chats found for this user.");
     }
   } catch (err) {
-    console.log(err);
+    console.log("Error fetching user chats:", err);
     res.status(500).send("Error fetching user chats!");
   }
 });
 
+// Route to fetch a specific chat by ID
 app.get("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
-
   try {
     const chat = await Chat.findOne({ _id: req.params.id, userId: userId });
     res.status(200).send(chat);
   } catch (err) {
-    console.log(err);
+    console.log("Error fetching chat:", err);
     res.status(500).send("Error fetching chat!");
   }
 });
 
-app.put("/api/chats/:id", ClerkExpressRequireAuth(), async(req, res)=>{
+// Route to update a chat with new conversation
+app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const userId = req.auth.userId;
-  const {question, answer, img} = req.body;
+  const { question, answer, img } = req.body;
+
   const newItems = [
-    ...(question ? [{role:"user", parts: [{text:question}], ...(img && {img})}]:[]),
-    {role:"model", parts:[{text:answer}]}
-  ]
-  try{
-    const updatedChat = await Chat.updateOne({_id:req.params.id, userId},{
-      $push:{
-        history:{
-          $each: newItems,
+    ...(question ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }] : []),
+    { role: "model", parts: [{ text: answer }] },
+  ];
+
+  try {
+    const updatedChat = await Chat.updateOne(
+      { _id: req.params.id, userId },
+      {
+        $push: {
+          history: {
+            $each: newItems,
+          },
         },
-      },
-    })
+      }
+    );
     res.status(200).send(updatedChat);
-  }catch(err){
-    console.log(err);
+  } catch (err) {
+    console.log("Error updating chat:", err);
     res.status(500).send("Error adding conversations!");
   }
 });
 
-// Integrate cl code (quiz generation and evaluation)
-app.use('/api/quiz', quizRoutes); // Use the cl code routes
+// Integrate quiz routes
+app.use('/api/quiz', quizRoutes); 
 
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(401).send('Unauthenticated!');
+  console.error("Error:", err.stack);
+  res.status(500).send('Internal server error!');
 });
 
+// Start the server and connect to MongoDB
 app.listen(port, () => {
   connect();
-  console.log("server running on port 3000");
+  console.log(`Server running on port ${port}`);
 });
