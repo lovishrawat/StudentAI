@@ -11,6 +11,7 @@ import RootLayout from "./layouts/rootLayout/RootLayout.jsx";
 import DashboardLayout from "./layouts/dashboardLayout/DashboardLayout.jsx";
 import Signin from "./routes/signin/Signin.jsx";
 import Signup from "./routes/signup/Signup.jsx";
+import QuizPage from "./routes/quiz/QuizPage.jsx";
 
 // Import your publishable key
 
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
           {
             path: "/dashboard/chats/:id",
             element: <ChatPage />,
+          },
+          {
+            path: "/dashboard/quiz",
+            element: <QuizPage />,
           },
         ],
       },

@@ -17,8 +17,8 @@ const Chatlist = () => {
       <Link className="p-2 rounded-xl hover:bg-[#2c2937]" to="/dashboard">
         Create a new chat
       </Link>
-      <Link className="p-2 rounded-xl hover:bg-[#2c2937]" to="/dashboard">
-        Explore
+      <Link className="p-2 rounded-xl hover:bg-[#2c2937]" to="/dashboard/quiz">
+        Quiz Generator
       </Link>
       <Link className="p-2 rounded-xl hover:bg-[#2c2937]" to="/dashboard">
         Contact

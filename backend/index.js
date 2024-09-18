@@ -1,21 +1,23 @@
-import express, { text } from "express";
+import express from "express";
 import cors from "cors";
 import ImageKit from "imagekit";
 import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChat.js";
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import quizRoutes from './quizRoutes.js';
-import 'dotenv/config'; // Load environment variables from .env
+// import 'dotenv/config'; // Load environment variables from .env
 
 const port = process.env.PORT || 3000;
 const app = express();
 
 // Enable CORS
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 
 // Parse JSON requests
 app.use(express.json());
@@ -118,7 +120,9 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   const { question, answer, img } = req.body;
 
   const newItems = [
-    ...(question ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }] : []),
+    ...(question
+      ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }]
+      : []),
     { role: "model", parts: [{ text: answer }] },
   ];
 
@@ -140,13 +144,13 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   }
 });
 
-// Integrate quiz routes
-app.use('/api/quiz', quizRoutes); 
+// Route to generate quiz questions
+app.use('/api/quiz', quizRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
-  res.status(500).send('Internal server error!');
+  res.status(500).send("Internal server error!");
 });
 
 // Start the server and connect to MongoDB
