@@ -11,7 +11,6 @@ const ChatPage = () => {
   const path = useLocation().pathname;
   const chatId = path.split("/").pop();
   const [lastSpokenIndex, setLastSpokenIndex] = useState(-1); // State to track the last spoken message
-  const [messages, setMessages] = useState([]); // State to manage message data with user preferences
 
   // Function to convert text to speech
   const speakText = (text) => {
@@ -38,30 +37,18 @@ const ChatPage = () => {
         }
         return res.json();
       }),
-    onSuccess: (data) => {
-      // Initialize messages with user preferences
-      setMessages(data.history.map((msg, index) => ({ ...msg, speak: false })));
-    },
   });
 
   useEffect(() => {
-    if (messages.length > 0) {
-      messages.forEach((message, index) => {
-        if (message.role !== "user" && index > lastSpokenIndex && message.speak) {
-          speakText(message.parts[0].text); // Speak only new bot responses with user preference
+    if (data?.history && data.history.length > 0) {
+      data.history.forEach((message, index) => {
+        if (message.role !== "user" && index > lastSpokenIndex) {
+          speakText(message.parts[0].text); // Speak only new bot responses
           setLastSpokenIndex(index); // Update the last spoken index
         }
       });
     }
-  }, [messages, lastSpokenIndex]); // Depend on messages and lastSpokenIndex
-
-  const handleToggleSpeak = (index) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((msg, i) =>
-        i === index ? { ...msg, speak: !msg.speak } : msg
-      )
-    );
-  };
+  }, [data, lastSpokenIndex]); // Depend on lastSpokenIndex to ensure only new messages are spoken
 
   if (isLoading)
     return (
@@ -80,8 +67,8 @@ const ChatPage = () => {
     <div className="chatpage h-full flex flex-col items-center relative p-4">
       <div className="wrapper flex-1 overflow-y-scroll no-scrollbar w-full flex justify-center">
         <div className="chat w-1/2 flex flex-col gap-5">
-          {messages.length > 0 ? (
-            messages.map((message, i) => (
+          {data?.history && data.history.length > 0 ? (
+            data.history.map((message, i) => (
               <React.Fragment key={i}>
                 {message.img && (
                   <IKImage
@@ -103,14 +90,6 @@ const ChatPage = () => {
                     {message.parts[0].text}
                   </Markdown>
                 </div>
-                {message.role !== "user" && (
-                  <button
-                    className="speak-toggle-button"
-                    onClick={() => handleToggleSpeak(i)}
-                  >
-                    {message.speak ? "Stop Speaking" : "Speak"}
-                  </button>
-                )}
               </React.Fragment>
             ))
           ) : (
