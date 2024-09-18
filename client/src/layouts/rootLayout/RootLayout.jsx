@@ -19,7 +19,7 @@ const RootLayout = () => {
           <header className="flex items-center justify-between">
             <Link to="/" className="flex items-center font-bold gap-2">
               <img src="/logo.png" alt="" className="w-8 h-8" />
-              <span>VISH AI</span>
+              <span>DESIORE</span>
             </Link>
             <div className="user">
               <SignedIn>

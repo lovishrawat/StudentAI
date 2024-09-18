@@ -15,19 +15,14 @@ const HomePage = () => {
       <div className="left flex-1 flex flex-col items-center justify-center gap-6 text-center p-6">
         <h1 className="font-semibold text-4xl lg:text-7xl">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-            VISH
-          </span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-white">
-            {" "}
-            AI
+            DESOIRE
           </span>
         </h1>
         <h2 className="text-lg lg:text-2xl text-gray-400">
           Supercharge your creativity and productivity
         </h2>
         <h3 className="font-light lg:max-w-lg max-w-3xl text-gray-500">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur,
-          nesciunt cumque omnis eos tenetur dolorum.
+          Created for students to solve all their problems.
         </h3>
         <Link
           to={"/dashboard"}

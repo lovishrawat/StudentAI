@@ -37,9 +37,8 @@ const DashboardPage = () => {
           <img src="/logo.png" className="w-16 h-16" alt="" />
           <h1 className="font-semibold text-6xl lg:text-6xl">
             <span className="bg-clip-text   bg-white text-transparent ">
-              VISH
+              DESOIRE
             </span>
-            <span className="bg-clip-text bg-white text-transparent"> AI</span>
           </h1>
         </div>
         <div className="options w-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-12 p-4">
