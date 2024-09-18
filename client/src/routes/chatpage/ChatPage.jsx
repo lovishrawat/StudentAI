@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./ChatPage.css";
 import NewPrompt from "../../components/NewPrompt";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +10,20 @@ import remarkGfm from "remark-gfm";
 const ChatPage = () => {
   const path = useLocation().pathname;
   const chatId = path.split("/").pop();
+
+  // Function to convert text to speech
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';  
+      speech.pitch = 1;      
+      speech.rate = 1;        
+      speech.volume = 1;      
+      window.speechSynthesis.speak(speech);
+    } else {
+      console.log("Text-to-Speech is not supported in this browser.");
+    }
+  };
 
   const { isLoading, isError, data, error } = useQuery({
     queryKey: ["chat", chatId],
@@ -23,6 +37,17 @@ const ChatPage = () => {
         return res.json();
       }),
   });
+
+  useEffect(() => {
+    
+    if (data?.history && data.history.length > 0) {
+      data.history.forEach((message) => {
+        if (message.role !== "user") {
+          speakText(message.parts[0].text);  // Speak only bot responses
+        }
+      });
+    }
+  }, [data]); 
 
   if (isLoading)
     return (
@@ -43,7 +68,7 @@ const ChatPage = () => {
         <div className="chat w-1/2 flex flex-col gap-5">
           {data?.history && data.history.length > 0 ? (
             data.history.map((message, i) => (
-              <>
+              <React.Fragment key={i}>
                 {message.img && (
                   <IKImage
                     urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
@@ -59,13 +84,12 @@ const ChatPage = () => {
                   className={`message ${
                     message.role === "user" ? "message user" : "message"
                   }`}
-                  key={i}
                 >
                   <Markdown remarkPlugins={[remarkGfm]}>
                     {message.parts[0].text}
                   </Markdown>
                 </div>
-              </>
+              </React.Fragment>
             ))
           ) : (
             <div>No messages found.</div>
@@ -78,3 +102,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
