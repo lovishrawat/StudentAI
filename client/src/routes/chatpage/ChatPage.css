@@ -1,0 +1,29 @@
+.message{
+
+  padding-left:10px;
+  padding-right:10px;
+
+  &.user{
+    background-color: #2c2937;
+    border-radius: 20px;
+    max-width: 80%;
+    align-self: flex-end;
+  }
+}
+
+.message ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
+
+.message ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+}
+
+.chat{
+  
+  p, li{
+    margin: 10px 0px;
+  }
+}
