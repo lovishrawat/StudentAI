@@ -1,7 +1,15 @@
 import express from 'express';
 import model from './gemini.js'; // Import your gemini model
+import cors from "cors";
 
 const router = express.Router();
+
+router.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 
 // Function to generate quiz questions using your model
 async function generateQuizQuestions(topic, numQuestions = 5) {
@@ -9,7 +17,7 @@ async function generateQuizQuestions(topic, numQuestions = 5) {
 
   try {
     const chat = model.startChat({
-      history: [{ role: "system", parts: [{ text: prompt }] }],
+      history: [{ role: "model", parts: [{ text: prompt }] }],
       generationConfig: {},
     });
 
@@ -40,7 +48,7 @@ async function evaluateAnswer(question, userAnswer, correctAnswer) {
 
   try {
     const chat = model.startChat({
-      history: [{ role: "system", parts: [{ text: prompt }] }],
+      history: [{ role: "model", parts: [{ text: prompt }] }],
       generationConfig: {},
     });
 

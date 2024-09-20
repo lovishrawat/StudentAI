@@ -8,11 +8,18 @@ const QuizPage = () => {
   const [error, setError] = useState(null);
 
   const fetchQuizQuestions = async () => {
+    if (!topic.trim()) {
+      setError("Please enter a topic.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(
-        `/api/quiz/generate?topic=${encodeURIComponent(
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/quiz/generate?topic=${encodeURIComponent(
           topic
         )}&numQuestions=${numQuestions}`
       );
@@ -20,7 +27,11 @@ const QuizPage = () => {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      setQuizQuestions(data);
+      if (Array.isArray(data)) {
+        setQuizQuestions(data);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
       setError("Failed to generate quiz questions.");
       console.error("Fetch error:", err);
@@ -51,19 +62,24 @@ const QuizPage = () => {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             className="px-4 py-2 rounded-md text-black"
+            aria-label="Quiz topic"
           />
           <input
             type="number"
             placeholder="Number of questions"
             value={numQuestions}
-            onChange={(e) => setNumQuestions(Number(e.target.value))}
+            onChange={(e) =>
+              setNumQuestions(Math.min(20, Math.max(1, Number(e.target.value))))
+            }
             className="px-4 py-2 rounded-md text-black"
             min="1"
             max="20"
+            aria-label="Number of questions"
           />
           <button
             onClick={fetchQuizQuestions}
             className="px-6 py-3 bg-white text-black rounded-md text-sm hover:bg-gray-200 active:bg-gray-300"
+            aria-label="Generate Quiz"
           >
             Generate Quiz
           </button>

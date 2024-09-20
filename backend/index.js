@@ -5,10 +5,10 @@ import mongoose from "mongoose";
 import Chat from "./models/chat.js";
 import UserChats from "./models/userChat.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
-import quizRoutes from './quizRoutes.js';
+import model from "./gemini.js";
 // import 'dotenv/config'; // Load environment variables from .env
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 const app = express();
 
 // Enable CORS
@@ -145,7 +145,28 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 });
 
 // Route to generate quiz questions
-app.use('/api/quiz', quizRoutes);
+app.get('/api/quiz/generate', async (req, res) => {
+  const { topic, numQuestions } = req.query;
+
+  if (!topic || !numQuestions) {
+    return res.status(400).json({ error: 'Topic and number of questions are required.' });
+  }
+
+  try {
+    console.log("Hello Lovish")
+    const prompt = `Generate a quiz about ${topic} with ${numQuestions} questions. Each question should have a correct answer. Format the output as a JSON array of objects, where each object has a "question" field and an "answer" field.`;
+
+    const result = await model.generateContent(prompt);  // Using the gemini model
+    const response = await result.response;
+    const generatedQuiz = JSON.parse(response.text());  // Parsing response text to JSON
+
+    res.json(generatedQuiz);  // Send quiz questions as response
+  } catch (error) {
+    console.error('Error generating quiz:', error);
+    res.status(500).json({ error: 'Failed to generate quiz questions.' });
+  }
+});
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
